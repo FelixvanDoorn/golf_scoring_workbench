@@ -16,8 +16,8 @@ from selenium.webdriver.support.wait import WebDriverWait
 from selenium.common.exceptions import TimeoutException, WebDriverException
 from webdriver_manager.chrome import ChromeDriverManager
 
-from models import ScraperConfig, ScrapingResult, LoginResult
-from scrapers.base_scraper import BaseScraper
+from pipelines.strokeplay.models import ScraperConfig, ScrapingResult, LoginResult
+from pipelines.strokeplay.scrapers.base_scraper import BaseScraper
 
 
 class GolfNLScraper(BaseScraper):

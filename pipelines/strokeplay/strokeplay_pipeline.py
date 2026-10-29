@@ -1,5 +1,5 @@
-from config_manager import load_config
-from scrapers.golf_nl_scraper import GolfNLScraper
+from pipelines.strokeplay.config_manager import load_config
+from pipelines.strokeplay.scrapers.golf_nl_scraper import GolfNLScraper
 
 
 import logging

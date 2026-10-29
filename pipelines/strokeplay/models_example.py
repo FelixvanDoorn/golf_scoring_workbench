@@ -3,7 +3,7 @@
 Example script showing how to use the models.
 """
 
-from models import ScraperConfig, GolfScore, ScrapingResult, LoginResult
+from pipelines.strokeplay.models import ScraperConfig, GolfScore, ScrapingResult, LoginResult
 
 
 def example_scraper_config():

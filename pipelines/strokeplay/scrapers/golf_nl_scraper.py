@@ -3,20 +3,19 @@ Golf.nl scraper implementation.
 """
 
 import logging
-import re
 from datetime import datetime
-from typing import List, Dict, Any
+from typing import Any
 
 from bs4 import BeautifulSoup
 from selenium import webdriver
+from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.chrome.service import Service as ChromeService
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.wait import WebDriverWait
-from selenium.common.exceptions import TimeoutException, WebDriverException
 from webdriver_manager.chrome import ChromeDriverManager
 
-from pipelines.strokeplay.models import ScraperConfig, ScrapingResult, LoginResult
+from pipelines.strokeplay.models import LoginResult, ScraperConfig, ScrapingResult
 from pipelines.strokeplay.scrapers.base_scraper import BaseScraper
 
 
@@ -129,7 +128,7 @@ class GolfNLScraper(BaseScraper):
                 timestamp=datetime.now().isoformat(),
             )
 
-    def _extract_score_details(self, score_details_html: str) -> Dict[str, Any]:
+    def _extract_score_details(self, score_details_html: str) -> dict[str, Any]:
         """
         Extract key-value pairs from a score details block.
 
@@ -156,9 +155,7 @@ class GolfNLScraper(BaseScraper):
                 "div", class_="c-score__details__content"
             )
 
-            self.logger.info(
-                f"Found {len(score_details_content_divs)} score details content divs"
-            )
+            self.logger.info(f"Found {len(score_details_content_divs)} score details content divs")
 
             score_data = {}
 
@@ -180,7 +177,7 @@ class GolfNLScraper(BaseScraper):
             self.logger.warning(f"Error extracting score details: {e}")
             return {}
 
-    def scrape_scores(self) -> List[Dict[str, Any]]:
+    def scrape_scores(self) -> list[dict[str, Any]]:
         """
         Scrape golf scores from the website.
 
@@ -195,9 +192,7 @@ class GolfNLScraper(BaseScraper):
             self._wait_for_element(By.CLASS_NAME, "c-scores")
 
             # Find all score detail blocks
-            score_detail_elements = self.driver.find_elements(
-                By.CLASS_NAME, "c-score__details"
-            )
+            score_detail_elements = self.driver.find_elements(By.CLASS_NAME, "c-score__details")
             self.logger.info(f"Found {len(score_detail_elements)} score detail blocks")
             all_scores = []
 

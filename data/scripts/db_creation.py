@@ -1,5 +1,6 @@
-import pandas as pd
 import sqlite3
+
+import pandas as pd
 
 df_xlsx = pd.read_excel("../raw/score_analyse.xlsx", sheet_name=None)
 df_scores = pd.concat([df_xlsx[year] for year in df_xlsx.keys() if "20" in year])
@@ -61,9 +62,7 @@ df_course_id_mappings = pd.DataFrame(
 df_course_id_mappings_col_names = [description[0] for description in cursor.description]
 df_course_id_mappings.columns = df_course_id_mappings_col_names
 
-df_tee = df_tee.merge(
-    df_course_id_mappings, how="inner", left_on="Course", right_on="course_name"
-)
+df_tee = df_tee.merge(df_course_id_mappings, how="inner", left_on="Course", right_on="course_name")
 
 df_slope_course = df_xlsx["Course Ratings"]
 
@@ -91,9 +90,7 @@ conn.commit()
 
 df_holes_unmelted = df_pars.copy()
 
-df_holes_unmelted.columns = [
-    col.replace("Par Hole", "") for col in df_holes_unmelted.columns
-]
+df_holes_unmelted.columns = [col.replace("Par Hole", "") for col in df_holes_unmelted.columns]
 
 df_holes = df_holes_unmelted.melt(
     id_vars=["Course"], var_name="hole_number", value_name="par"
@@ -105,9 +102,7 @@ df_holes = df_holes.merge(
 df_holes = df_holes.drop(columns=["course_name", "Course"])
 
 tee_ids = pd.DataFrame(
-    cursor.execute(
-        "SELECT DISTINCT course_id, tee_id, tee_name AS Tee FROM dim_tee"
-    ).fetchall()
+    cursor.execute("SELECT DISTINCT course_id, tee_id, tee_name AS Tee FROM dim_tee").fetchall()
 )
 tee_id_col_names = [description[0] for description in cursor.description]
 tee_ids.columns = tee_id_col_names

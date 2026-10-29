@@ -3,17 +3,19 @@ Configuration manager for the Golf.nl scraper.
 Handles loading configuration from YAML and .env files.
 """
 
-from dotenv import dotenv_values
-from pipelines.strokeplay.models import ScraperConfig
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any
+
 import yaml
+from dotenv import dotenv_values
+
+from pipelines.strokeplay.models import ScraperConfig
 
 
 class ConfigManager:
     """Manages configuration loading from YAML and .env files."""
 
-    def __init__(self, config_dir: Optional[Path] = None):
+    def __init__(self, config_dir: Path | None = None):
         """
         Initialize the configuration manager.
 
@@ -25,10 +27,10 @@ class ConfigManager:
             config_dir = Path(__file__).parent
 
         self.config_dir = config_dir
-        self.yaml_config: Dict[str, Any] = {}
-        self.env_config: Dict[str, Any] = {}
+        self.yaml_config: dict[str, Any] = {}
+        self.env_config: dict[str, Any] = {}
 
-    def load_config(self) -> Dict[str, Any]:
+    def load_config(self) -> dict[str, Any]:
         """
         Load configuration from both YAML and .env files.
 
@@ -61,7 +63,7 @@ class ConfigManager:
             raise FileNotFoundError(f"Configuration file not found: {yaml_path}")
 
         try:
-            with open(yaml_path, "r", encoding="utf-8") as file:
+            with open(yaml_path, encoding="utf-8") as file:
                 self.yaml_config = yaml.safe_load(file) or {}
         except yaml.YAMLError as e:
             raise ValueError(f"Invalid YAML configuration: {e}")
@@ -75,7 +77,7 @@ class ConfigManager:
 
         self.env_config = dotenv_values(env_path)
 
-    def _merge_configs(self) -> Dict[str, Any]:
+    def _merge_configs(self) -> dict[str, Any]:
         """
         Merge YAML and .env configurations.
         Environment variables take precedence over YAML values.
@@ -90,8 +92,8 @@ class ConfigManager:
         return merged
 
     def _flatten_dict(
-        self, d: Dict[str, Any], parent_key: str = "", sep: str = "_"
-    ) -> Dict[str, Any]:
+        self, d: dict[str, Any], parent_key: str = "", sep: str = "_"
+    ) -> dict[str, Any]:
         """
         Flatten nested dictionary structure.
 
@@ -108,7 +110,7 @@ class ConfigManager:
                 items.append((new_key, v))
         return dict(items)
 
-    def _validate_config(self, config: Dict[str, Any]) -> None:
+    def _validate_config(self, config: dict[str, Any]) -> None:
         """Validate that required configuration fields are present."""
         required_fields = ["email", "password"]
         missing_fields = [field for field in required_fields if not config.get(field)]
@@ -136,14 +138,14 @@ class ConfigManager:
         self.config = self.load_config()
 
     @property
-    def config(self) -> Dict[str, Any]:
+    def config(self) -> dict[str, Any]:
         """Get the current configuration."""
         if not hasattr(self, "_config"):
             self._config = self.load_config()
         return self._config
 
 
-def create_scraper_config(config_dict: Dict[str, Any]) -> ScraperConfig:
+def create_scraper_config(config_dict: dict[str, Any]) -> ScraperConfig:
     """
     Create a ScraperConfig object from configuration dictionary.
 
@@ -159,9 +161,7 @@ def create_scraper_config(config_dict: Dict[str, Any]) -> ScraperConfig:
         password=config_dict["password"],
         base_url=config_dict.get("urls_base", "https://mijn.golf.nl"),
         login_url=config_dict.get("urls_login", "https://mijn.golf.nl/login"),
-        scores_url=config_dict.get(
-            "urls_scores", "https://mijn.golf.nl/mijn-spel/scores"
-        ),
+        scores_url=config_dict.get("urls_scores", "https://mijn.golf.nl/mijn-spel/scores"),
         timeout=config_dict.get("scraper_timeout", 10),
         retry_attempts=config_dict.get("scraper_retry_attempts", 3),
         implicit_wait=config_dict.get("scraper_implicit_wait", 5),
@@ -177,9 +177,7 @@ def create_scraper_config(config_dict: Dict[str, Any]) -> ScraperConfig:
         log_format=config_dict.get(
             "logging_format", "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
         ),
-        score_pattern=config_dict.get(
-            "extraction_score_pattern", r"<div>SD([\d,]+)\xa0"
-        ),
+        score_pattern=config_dict.get("extraction_score_pattern", r"<div>SD([\d,]+)\xa0"),
     )
 
 

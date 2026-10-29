@@ -3,7 +3,6 @@ Data models for the Golf.nl scraper.
 """
 
 from dataclasses import dataclass
-from typing import List, Optional, Any, Dict
 
 
 @dataclass
@@ -30,9 +29,7 @@ class ScraperConfig:
     retry_attempts: int = 3
     implicit_wait: int = 5
     headless: bool = False
-    user_agent: str = (
-        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36"
-    )
+    user_agent: str = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36"
     window_size: str = "1920x1080"
     disable_images: bool = True
     disable_javascript: bool = False
@@ -66,9 +63,9 @@ class ScrapingResult:
     """Result of a scraping operation."""
 
     success: bool
-    score_details: List[ScoreDetails]
-    error_message: Optional[str] = None
-    timestamp: Optional[str] = None
+    score_details: list[ScoreDetails]
+    error_message: str | None = None
+    timestamp: str | None = None
     total_scores_found: int = 0
 
     def __post_init__(self):
@@ -77,7 +74,7 @@ class ScrapingResult:
             self.score_details = []
         self.total_scores_found = len(self.score_details)
 
-    def get_score_details(self) -> List[float]:
+    def get_score_details(self) -> list[float]:
         """
         Extract score details values from scores.
         Works with both List[float] and List[Dict] formats.
@@ -111,7 +108,7 @@ class ScrapingResult:
                                 value = value.replace(",", ".")
                             score_details.append(float(value))
                             break
-                        except (ValueError, TypeError):
+                        except ValueError, TypeError:
                             continue
 
         return score_details
@@ -122,5 +119,5 @@ class LoginResult:
     """Result of a login attempt."""
 
     success: bool
-    error_message: Optional[str] = None
-    timestamp: Optional[str] = None
+    error_message: str | None = None
+    timestamp: str | None = None

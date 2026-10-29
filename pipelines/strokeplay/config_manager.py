@@ -4,7 +4,7 @@ Handles loading configuration from YAML and .env files.
 """
 
 from dotenv import dotenv_values
-from models import ScraperConfig
+from pipelines.strokeplay.models import ScraperConfig
 from pathlib import Path
 from typing import Any, Dict, Optional
 import yaml

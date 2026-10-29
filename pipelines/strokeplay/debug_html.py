@@ -4,8 +4,8 @@ Debug script to save HTML from pages you're scraping.
 Use this to inspect the HTML structure and find the right selectors.
 """
 
-from config_manager import load_config
-from golf_nl_scraper import GolfNLScraper
+from pipelines.strokeplay.config_manager import load_config
+from pipelines.strokeplay.scrapers.golf_nl_scraper import GolfNLScraper
 from selenium.webdriver.common.by import By
 from pathlib import Path
 

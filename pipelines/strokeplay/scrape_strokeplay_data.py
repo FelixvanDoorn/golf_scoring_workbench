@@ -8,16 +8,12 @@ import argparse
 import logging
 import sys
 from datetime import datetime
-from pathlib import Path
 from typing import Dict, List, Optional
 
-# Add the current directory to the path
-sys.path.append(str(Path(__file__).parent))
-
-from config_manager import load_config
-from models import ScrapingResult
-from scrapers.base_scraper import BaseScraper
-from scrapers.golf_nl_scraper import GolfNLScraper
+from pipelines.strokeplay.config_manager import load_config
+from pipelines.strokeplay.models import ScrapingResult
+from pipelines.strokeplay.scrapers.base_scraper import BaseScraper
+from pipelines.strokeplay.scrapers.golf_nl_scraper import GolfNLScraper
 
 
 class ScraperOrchestrator:

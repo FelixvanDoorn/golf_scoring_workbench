@@ -4,7 +4,7 @@ Base scraper class that defines the interface for all golf data scrapers.
 
 from abc import ABC, abstractmethod
 from typing import List, Optional
-from models import ScraperConfig, ScrapingResult
+from pipelines.strokeplay.models import ScraperConfig, ScrapingResult
 
 
 class BaseScraper(ABC):

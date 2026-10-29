@@ -6,8 +6,8 @@ This is a template for creating additional scrapers.
 from datetime import datetime
 from typing import List
 
-from models import ScrapingResult
-from scrapers.base_scraper import BaseScraper
+from pipelines.strokeplay.models import ScrapingResult
+from pipelines.strokeplay.scrapers.base_scraper import BaseScraper
 
 
 class ExampleScraper(BaseScraper):

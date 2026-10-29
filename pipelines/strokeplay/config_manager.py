@@ -183,9 +183,13 @@ def create_scraper_config(config_dict: Dict[str, Any]) -> ScraperConfig:
     )
 
 
-def load_config() -> ScraperConfig:
+def load_config(config_dir: Path | None = None) -> ScraperConfig:
     """
     Convenience function to load configuration and create ScraperConfig.
+
+    Args:
+        config_dir: Directory containing config.yaml and .env.
+                   Defaults to the directory of this module.
 
     Returns:
         ScraperConfig object
@@ -194,6 +198,6 @@ def load_config() -> ScraperConfig:
         FileNotFoundError: If required config files are missing.
         ValueError: If required configuration fields are missing.
     """
-    config_manager = ConfigManager()
+    config_manager = ConfigManager(config_dir)
     config_dict = config_manager.load_config()
     return create_scraper_config(config_dict)

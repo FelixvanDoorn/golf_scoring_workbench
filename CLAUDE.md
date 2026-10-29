@@ -75,8 +75,15 @@ bead unblocks the work that depends on it, which the orchestrator picks up on it
 New work enters as a rough bead labelled `stage:needs-design`, filed by the orchestrator or by brainstorm. Only the
 planner turns intake beads into ready tasks with acceptance criteria.
 
-Stage labels: `stage:needs-design` → `stage:ready` → `stage:in-progress` → `stage:testing` → `stage:review` → closed.
-Agents leave their results as bead notes prefixed `IMPL:`, `TEST:`, or `REVIEW:`.
+Stage labels: `stage:needs-design` → `stage:ready` → `stage:in-progress` → `stage:testing` → `stage:review` →
+`stage:awaiting-merge` → closed.
+Agents leave their results as bead notes prefixed `IMPL:`, `TEST:`, `QA:`, `REVIEW:`, or `HANDOFF:`.
+
+Each bead is built in its own worktree at `../golf_scoring_workbench-worktrees/<id>`, on branch `bead/<id>`.
+The main checkout is never edited by agents. The orchestrator commits on the bead branch and prints a HANDOFF with
+what changed, where to look closely, and QA steps. It merges into `main` only when the user replies "merge <id>".
+
+Run the loop in auto mode: `claude --agent orchestrator --permission-mode auto`.
 
 ## Build & Test
 

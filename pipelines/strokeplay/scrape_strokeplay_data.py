@@ -8,7 +8,6 @@ import argparse
 import logging
 import sys
 from datetime import datetime
-from typing import Dict, List, Optional
 
 from pipelines.strokeplay.config_manager import load_config
 from pipelines.strokeplay.models import ScrapingResult
@@ -19,7 +18,7 @@ from pipelines.strokeplay.scrapers.golf_nl_scraper import GolfNLScraper
 class ScraperOrchestrator:
     """Orchestrates multiple scrapers with selective execution."""
 
-    def __init__(self, config_path: Optional[str] = None):
+    def __init__(self, config_path: str | None = None):
         """
         Initialize the orchestrator.
 
@@ -28,8 +27,8 @@ class ScraperOrchestrator:
         """
         self.config = load_config()
         self.logger = self._setup_logging()
-        self.scrapers: Dict[str, BaseScraper] = {}
-        self.results: Dict[str, ScrapingResult] = {}
+        self.scrapers: dict[str, BaseScraper] = {}
+        self.results: dict[str, ScrapingResult] = {}
 
         # Register available scrapers
         self._register_scrapers()
@@ -41,9 +40,7 @@ class ScraperOrchestrator:
 
         if not logger.handlers:
             handler = logging.StreamHandler()
-            formatter = logging.Formatter(
-                "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-            )
+            formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
             handler.setFormatter(formatter)
             logger.addHandler(handler)
 
@@ -59,11 +56,9 @@ class ScraperOrchestrator:
         # self.scrapers['golf_netherlands'] = GolfNetherlandsScraper(self.config)
         # self.scrapers['golf_amateur'] = GolfAmateurScraper(self.config)
 
-        self.logger.info(
-            f"Registered {len(self.scrapers)} scrapers: {list(self.scrapers.keys())}"
-        )
+        self.logger.info(f"Registered {len(self.scrapers)} scrapers: {list(self.scrapers.keys())}")
 
-    def list_scrapers(self) -> List[str]:
+    def list_scrapers(self) -> list[str]:
         """List all available scrapers."""
         return list(self.scrapers.keys())
 
@@ -105,7 +100,7 @@ class ScraperOrchestrator:
             self.results[scraper_name] = error_result
             return error_result
 
-    def run_scrapers(self, scraper_names: List[str]) -> Dict[str, ScrapingResult]:
+    def run_scrapers(self, scraper_names: list[str]) -> dict[str, ScrapingResult]:
         """
         Run multiple scrapers.
 
@@ -122,11 +117,11 @@ class ScraperOrchestrator:
 
         return self.results
 
-    def run_all_scrapers(self) -> Dict[str, ScrapingResult]:
+    def run_all_scrapers(self) -> dict[str, ScrapingResult]:
         """Run all available scrapers."""
         return self.run_scrapers(self.list_scrapers())
 
-    def get_summary(self) -> Dict[str, any]:
+    def get_summary(self) -> dict[str, any]:
         """Get a summary of all scraping results."""
         summary = {
             "total_scrapers": len(self.scrapers),
@@ -158,7 +153,7 @@ class ScraperOrchestrator:
         summary = self.get_summary()
 
         print(f"\n{'=' * 50}")
-        print(f"SCRAPING SUMMARY")
+        print("SCRAPING SUMMARY")
         print(f"{'=' * 50}")
         print(f"Total scrapers available: {summary['total_scrapers']}")
         print(f"Scrapers run: {summary['scrapers_run']}")
@@ -167,7 +162,7 @@ class ScraperOrchestrator:
         print(f"Total scores found: {summary['total_scores_found']}")
 
         if summary["results"]:
-            print(f"\nDetailed Results:")
+            print("\nDetailed Results:")
             print(f"{'-' * 50}")
             for scraper_name, result in summary["results"].items():
                 status = "✓ SUCCESS" if result["success"] else "✗ FAILED"
@@ -187,12 +182,8 @@ def main():
         nargs="+",
         help="Specific scrapers to run (e.g., golf_nl golf_handicap)",
     )
-    parser.add_argument(
-        "--all", "-a", action="store_true", help="Run all available scrapers"
-    )
-    parser.add_argument(
-        "--list", "-l", action="store_true", help="List all available scrapers"
-    )
+    parser.add_argument("--all", "-a", action="store_true", help="Run all available scrapers")
+    parser.add_argument("--list", "-l", action="store_true", help="List all available scrapers")
     parser.add_argument("--config", "-c", help="Path to configuration file")
 
     args = parser.parse_args()
@@ -235,6 +226,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-
-

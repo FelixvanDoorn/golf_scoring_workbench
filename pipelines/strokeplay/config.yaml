@@ -1,0 +1,34 @@
+# Golf.nl Scraper Configuration
+# Non-sensitive configuration settings
+
+# Website URLs
+urls:
+  base: "https://mijn.golf.nl"
+  login: "https://mijn.golf.nl/login"
+  scores: "https://mijn.golf.nl/mijn-spel/scores"
+
+# Scraper behavior
+scraper:
+  timeout: 10
+  retry_attempts: 3
+  implicit_wait: 5
+  headless: false
+
+# Logging configuration
+logging:
+  level: "INFO"
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  file: null  # Set to a path if you want file logging
+
+# Data extraction settings
+extraction:
+  score_pattern: "SD([\\d,]+)\\xa0"
+  max_scores_per_page: 50
+  wait_for_scores: true
+
+# Browser settings
+browser:
+  user_agent: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36"
+  window_size: "1920x1080"
+  disable_images: true
+  disable_javascript: false

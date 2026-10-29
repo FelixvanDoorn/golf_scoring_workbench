@@ -1,0 +1,42 @@
+[project]
+name = "golf-scoring-workbench"
+version = "0.1.0"
+description = "Scrape, store and analyse personal golf stroke-play scores"
+readme = "README.md"
+requires-python = ">=3.14"
+dependencies = [
+    "beautifulsoup4>=4.13.4",
+    "openpyxl>=3.1.5",
+    "pandas>=2.3",
+    "python-dotenv>=1.0.1",
+    "pyyaml>=6.0.2",
+    "requests>=2.32.3",
+    "selenium>=4.32.0",
+    "webdriver-manager>=4.0.2",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1.1",
+    "ruff>=0.17.3",
+]
+analysis = [
+    "jupyter>=1.1.1",
+    "matplotlib>=3.10",
+    "seaborn>=0.13.2",
+]
+
+[tool.uv]
+default-groups = ["dev", "analysis"]
+
+[tool.ruff]
+target-version = "py314"
+line-length = 100
+extend-exclude = ["analysis/notebooks"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "BLE", "SIM", "S"]
+ignore = ["S101"]  # assert is fine in tests
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

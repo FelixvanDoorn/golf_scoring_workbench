@@ -58,20 +58,63 @@ This protocol applies when ending a Beads implementation workflow. It is subordi
 <!-- END BEADS INTEGRATION -->
 
 
+## Multi-Agent Workflow
+
+Work runs through agents defined in `.claude/agents/`. Start a session with `claude --agent orchestrator`.
+
+- **orchestrator**: main session. Picks beads with `bd ready` and dispatches the others. Never edits code.
+- **planner**: writes beads (design and acceptance criteria). Read-only on code.
+- **coder**: implements one bead.
+- **tester**: verifies acceptance criteria. Edits `tests/` only.
+- **reviewer**: checks the diff against the standards below. Read-only.
+
+Design discussions happen separately in `claude --agent brainstorm`, an interactive session outside the loop.
+It resolves open `decision` beads with the user and owns the Coding Standards section below. Closing a decision
+bead unblocks the work that depends on it, which the orchestrator picks up on its next run.
+
+New work enters as a rough bead labelled `stage:needs-design`, filed by the orchestrator or by brainstorm. Only the
+planner turns intake beads into ready tasks with acceptance criteria.
+
+Stage labels: `stage:needs-design` → `stage:ready` → `stage:in-progress` → `stage:testing` → `stage:review` → closed.
+Agents leave their results as bead notes prefixed `IMPL:`, `TEST:`, or `REVIEW:`.
+
 ## Build & Test
 
-_Add your build and test commands here_
-
 ```bash
-# Example:
-# npm install
-# npm test
+uv sync                    # install deps (Python 3.14, see .python-version)
+uv run pytest -q           # tests
+uv run ruff check .        # lint
+uv run ruff format .       # format
 ```
+
+Never use pip. Add dependencies with `uv add` (or `uv add --dev`).
 
 ## Architecture Overview
 
-_Add a brief overview of your project architecture_
+- `pipelines/strokeplay/`: golf.nl scraper (Selenium + BeautifulSoup). `config_manager.py` loads
+  `config.yaml` plus credentials from `.env`. `scrapers/` holds `BaseScraper` and `GolfNLScraper`.
+  `models.py` holds the dataclasses. `scrape_strokeplay_data.py` is the CLI entry point.
+  `golf_nl.py`, `debug_html.py`, and `models_example.py` are legacy/reference scripts.
+- `data/scripts/`: SQLite schema creation and deletion for `data/golf_workbench.db`.
+- `analysis/notebooks/`: exploratory Jupyter notebooks.
+- `tests/`: pytest suite (currently minimal).
 
-## Conventions & Patterns
+## Coding Standards
 
-_Add your project-specific conventions here_
+The reviewer enforces these. Do not block a bead for problems that were already in the code. File those as chores instead.
+
+1. Code passes `ruff check` and `ruff format`. The config lives in `pyproject.toml`.
+2. Type hints on all public functions and methods. Use built-in generics (`list[str]`, `X | None`).
+3. Docstrings on public modules, classes, and functions. Comments explain why, not what.
+4. Use package imports. No `sys.path.append` hacks.
+5. Errors: catch specific exceptions. No bare or blind `except Exception` that swallows errors. Log with `logging`, never `print`, in library code.
+6. Resources: WebDriver, DB connections, and files are closed via context managers or `try/finally`.
+7. SQL uses parameterized queries. Never use string formatting with values.
+8. Secrets come only from the config loader or the environment. They are never logged, hard-coded, or used in tests.
+9. Tests: pytest with plain `assert`. No network, no real browser, no real DB. Use fixtures, mocks, and `tmp_path`.
+10. Keep changes scoped to the bead. Put unrelated improvements in new beads.
+
+## Safety
+
+- Never read or print `.env` files, and never commit them.
+- Never modify `data/golf_workbench.db` or `data/raw/` unless a bead explicitly requires it.

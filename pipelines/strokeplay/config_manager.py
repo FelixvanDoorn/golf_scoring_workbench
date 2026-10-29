@@ -66,7 +66,7 @@ class ConfigManager:
             with open(yaml_path, encoding="utf-8") as file:
                 self.yaml_config = yaml.safe_load(file) or {}
         except yaml.YAMLError as e:
-            raise ValueError(f"Invalid YAML configuration: {e}")
+            raise ValueError(f"Invalid YAML configuration: {e}") from e
 
     def _load_env_config(self) -> None:
         """Load configuration from .env file."""

@@ -9,6 +9,8 @@ import logging
 import sys
 from datetime import datetime
 
+from selenium.common.exceptions import WebDriverException
+
 from pipelines.strokeplay.config_manager import load_config
 from pipelines.strokeplay.models import ScrapingResult
 from pipelines.strokeplay.scrapers.base_scraper import BaseScraper
@@ -89,11 +91,13 @@ class ScraperOrchestrator:
             self.logger.info(f"Scraper {scraper_name} completed successfully")
             return result
 
-        except Exception as e:
-            self.logger.error(f"Scraper {scraper_name} failed: {e}")
+        # Only expected runtime failures (browser/driver, bad data, I/O) become a failed
+        # result; programming errors propagate so they fail loudly.
+        except (WebDriverException, ValueError, OSError) as e:
+            self.logger.exception(f"Scraper {scraper_name} failed: {e}")
             error_result = ScrapingResult(
                 success=False,
-                scores=[],
+                score_details=[],
                 error_message=str(e),
                 timestamp=datetime.now().isoformat(),
             )
@@ -219,8 +223,9 @@ def main():
         if failed_count > 0:
             sys.exit(1)
 
-    except Exception as e:
-        print(f"Error: {e}")
+    except (FileNotFoundError, ValueError) as e:
+        # Config loading and unknown scraper names are user-fixable errors: report and exit.
+        logging.getLogger(__name__).error("Error: %s", e)
         sys.exit(1)
 
 

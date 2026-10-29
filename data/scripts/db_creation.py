@@ -3,7 +3,7 @@ import sqlite3
 import pandas as pd
 
 df_xlsx = pd.read_excel("../raw/score_analyse.xlsx", sheet_name=None)
-df_scores = pd.concat([df_xlsx[year] for year in df_xlsx.keys() if "20" in year])
+df_scores = pd.concat([df_xlsx[year] for year in df_xlsx if "20" in year])
 df_pars = df_xlsx["Course Pars"].drop(columns="Tee").drop_duplicates()
 df_course = pd.DataFrame(df_pars["Course"])
 df_course["num_holes"] = df_pars.notnull().sum(axis=1) - 1

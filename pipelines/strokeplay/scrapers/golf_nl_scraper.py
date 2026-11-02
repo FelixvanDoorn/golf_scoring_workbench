@@ -25,23 +25,8 @@ class GolfNLScraper(BaseScraper):
     def __init__(self, config: ScraperConfig):
         super().__init__(config)
         self.driver: webdriver.Chrome = None
-        self.logger = self._setup_logging()
-
-    def _setup_logging(self) -> logging.Logger:
-        """Set up logging configuration."""
-        logger = logging.getLogger(__name__)
-
-        # Use config values for logging
-        log_level = getattr(logging, self.config.log_level.upper(), logging.INFO)
-        logger.setLevel(log_level)
-
-        if not logger.handlers:
-            handler = logging.StreamHandler()
-            formatter = logging.Formatter(self.config.log_format)
-            handler.setFormatter(formatter)
-            logger.addHandler(handler)
-
-        return logger
+        # Handlers and levels are configured once by the CLI entry point, not here.
+        self.logger = logging.getLogger(__name__)
 
     def validate_config(self) -> bool:
         """Validate that the configuration is sufficient for this scraper."""
@@ -219,7 +204,7 @@ class GolfNLScraper(BaseScraper):
             self.logger.info(f"Successfully extracted {len(all_scores)} score records")
 
             # Log sample of extracted data for debugging
-            if all_scores and self.logger.level <= logging.DEBUG:
+            if all_scores and self.logger.isEnabledFor(logging.DEBUG):
                 sample = all_scores[0]
                 self.logger.debug(f"Sample score data keys: {list(sample.keys())}")
 

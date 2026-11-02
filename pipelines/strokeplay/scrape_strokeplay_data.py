@@ -16,6 +16,42 @@ from pipelines.strokeplay.models import ScrapingResult
 from pipelines.strokeplay.scrapers.base_scraper import BaseScraper
 from pipelines.strokeplay.scrapers.golf_nl_scraper import GolfNLScraper
 
+DEFAULT_LOG_FORMAT = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+
+
+# The one handler configure_logging owns, so repeated calls replace it instead of stacking.
+_cli_handler: logging.Handler | None = None
+
+
+def configure_logging(level: str = "INFO", fmt: str = DEFAULT_LOG_FORMAT) -> None:
+    """Configure root logging for the CLI: one stderr handler with ``fmt`` at ``level``.
+
+    Safe to call more than once: each call replaces the handler added by the previous call.
+    Handlers added by anyone else (pytest's caplog, a caller's own setup) are left alone,
+    which is why this does not force-reset the root logger via basicConfig.
+
+    Args:
+        level: Logging level name such as "DEBUG" or "INFO". Unknown names fall back to INFO.
+        fmt: Format string for ``logging.Formatter``.
+    """
+    global _cli_handler
+    root = logging.getLogger()
+
+    if _cli_handler is not None:
+        root.removeHandler(_cli_handler)
+
+    handler = logging.StreamHandler(sys.stderr)
+    handler.setFormatter(logging.Formatter(fmt))
+    root.addHandler(handler)
+    _cli_handler = handler
+
+    resolved = getattr(logging, level.upper(), None)
+    if isinstance(resolved, int):
+        root.setLevel(resolved)
+    else:
+        root.setLevel(logging.INFO)
+        logging.getLogger(__name__).warning("Unknown log level %r, using INFO", level)
+
 
 class ScraperOrchestrator:
     """Orchestrates multiple scrapers with selective execution."""
@@ -28,25 +64,12 @@ class ScraperOrchestrator:
             config_path: Path to configuration file (optional)
         """
         self.config = load_config()
-        self.logger = self._setup_logging()
+        self.logger = logging.getLogger(__name__)
         self.scrapers: dict[str, BaseScraper] = {}
         self.results: dict[str, ScrapingResult] = {}
 
         # Register available scrapers
         self._register_scrapers()
-
-    def _setup_logging(self) -> logging.Logger:
-        """Set up logging for the orchestrator."""
-        logger = logging.getLogger(__name__)
-        logger.setLevel(logging.INFO)
-
-        if not logger.handlers:
-            handler = logging.StreamHandler()
-            formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
-            handler.setFormatter(formatter)
-            logger.addHandler(handler)
-
-        return logger
 
     def _register_scrapers(self) -> None:
         """Register all available scrapers."""
@@ -191,10 +214,13 @@ def main():
     parser.add_argument("--config", "-c", help="Path to configuration file")
 
     args = parser.parse_args()
+    # Configure defaults first so errors while loading the config are visible.
+    configure_logging()
 
     try:
         # Initialize orchestrator
         orchestrator = ScraperOrchestrator(args.config)
+        configure_logging(orchestrator.config.log_level, orchestrator.config.log_format)
 
         # List scrapers if requested
         if args.list:

@@ -10,8 +10,11 @@ from typing import Any
 import pytest
 
 from pipelines.strokeplay import scrape_strokeplay_data
-from pipelines.strokeplay.models import ScrapingResult
+from pipelines.strokeplay.models import ScraperConfig, ScrapingResult
 from pipelines.strokeplay.scrape_strokeplay_data import ScraperOrchestrator, main
+
+FAKE_EMAIL = "user@example.invalid"
+FAKE_CREDENTIAL = "not-a-real-password"
 
 
 def _fake_scraper_class(error: BaseException | None) -> type:
@@ -30,7 +33,10 @@ def _fake_scraper_class(error: BaseException | None) -> type:
 
 
 def _patch(monkeypatch: pytest.MonkeyPatch, error: BaseException | None) -> None:
-    monkeypatch.setattr(scrape_strokeplay_data, "load_config", lambda: object())
+    # main() reads config.log_level/log_format (gsw-e9v), so the fake config must be a real
+    # ScraperConfig with dummy credentials rather than a bare object().
+    dummy_config = ScraperConfig(email=FAKE_EMAIL, password=FAKE_CREDENTIAL)
+    monkeypatch.setattr(scrape_strokeplay_data, "load_config", lambda: dummy_config)
     monkeypatch.setattr(scrape_strokeplay_data, "GolfNLScraper", _fake_scraper_class(error))
 
 
@@ -106,7 +112,8 @@ def test_main_missing_config_error_visible_on_stderr_without_logging_setup(
 ) -> None:
     """With no handlers configured anywhere, the ERROR still reaches stderr and exit is 1.
 
-    Config fails before _setup_logging runs, so logging.lastResort must print the message.
+    Config fails right after main() calls configure_logging() with defaults, so the CLI's
+    stderr handler must print the message.
     """
 
     def _missing_config() -> None:

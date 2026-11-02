@@ -6,7 +6,6 @@ import logging
 from datetime import datetime
 from typing import Any
 
-from bs4 import BeautifulSoup
 from selenium import webdriver
 from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.chrome.service import Service as ChromeService
@@ -17,6 +16,10 @@ from webdriver_manager.chrome import ChromeDriverManager
 
 from pipelines.strokeplay.models import LoginResult, ScraperConfig, ScrapingResult
 from pipelines.strokeplay.scrapers.base_scraper import BaseScraper
+from pipelines.strokeplay.scrapers.golf_nl_parser import (
+    parse_score_details_block,
+    parse_scores_page,
+)
 
 
 class GolfNLScraper(BaseScraper):
@@ -115,48 +118,20 @@ class GolfNLScraper(BaseScraper):
 
     def _extract_score_details(self, score_details_html: str) -> dict[str, Any]:
         """
-        Extract key-value pairs from a score details block.
+        Extract label/value pairs from a score details block.
 
-        Structure: Keys are in divs with class "c-score__legend"
-                   Values are in divs with class "c-score__content"
+        Rows are ``div.c-score__details__content`` elements; labels are in
+        ``div.c-score__details__label`` and values in ``div.c-score__details__text``.
+        Parsing is delegated to ``golf_nl_parser.parse_score_details_block``.
 
         Args:
             score_details_html: HTML content of a c-score__details div
 
         Returns:
-            Dictionary with keys from c-score__legend and values from c-score__content
+            Dictionary mapping each label to its value text
         """
         try:
-            soup = BeautifulSoup(score_details_html, "html.parser")
-
-            # Find the main score details container
-            details_container = soup.find("div", class_="c-score__details")
-            if not details_container:
-                # If the HTML is just the container itself, use the whole soup
-                details_container = soup
-
-            # Find all legend (key) elements
-            score_details_content_divs = details_container.find_all(
-                "div", class_="c-score__details__content"
-            )
-
-            self.logger.info(f"Found {len(score_details_content_divs)} score details content divs")
-
-            score_data = {}
-
-            # For each legend, find its corresponding content
-            for content_div in score_details_content_divs:
-                key_div = content_div.find("div", class_="c-score__details__label")
-                value_div = content_div.find("div", class_="c-score__details__text")
-
-                if key_div and value_div:
-                    key = key_div.get_text(strip=True)
-                    value = value_div.get_text(strip=True)
-
-                    if key:
-                        score_data[key] = value
-
-            return score_data
+            return parse_score_details_block(score_details_html)
 
         except Exception as e:
             self.logger.warning(f"Error extracting score details: {e}")
@@ -176,30 +151,7 @@ class GolfNLScraper(BaseScraper):
             # Wait for scores to load
             self._wait_for_element(By.CLASS_NAME, "c-scores")
 
-            # Find all score detail blocks
-            score_detail_elements = self.driver.find_elements(By.CLASS_NAME, "c-score__details")
-            self.logger.info(f"Found {len(score_detail_elements)} score detail blocks")
-            all_scores = []
-
-            for i, score_detail_element in enumerate(score_detail_elements):
-                try:
-                    # Get HTML of the score details block
-                    score_html = score_detail_element.get_attribute("outerHTML")
-
-                    # Extract structured key-value pairs
-                    score_data = self._extract_score_details(score_html)
-
-                    if score_data:
-                        all_scores.append(score_data)
-                        self.logger.debug(
-                            f"Score {i + 1}: Extracted {len(score_data)} fields - {list(score_data.keys())}"
-                        )
-                    else:
-                        self.logger.warning(f"Score {i + 1}: No data extracted")
-
-                except Exception as e:
-                    self.logger.warning(f"Error processing score element {i + 1}: {e}")
-                    continue
+            all_scores = parse_scores_page(self.driver.page_source)
 
             self.logger.info(f"Successfully extracted {len(all_scores)} score records")
 

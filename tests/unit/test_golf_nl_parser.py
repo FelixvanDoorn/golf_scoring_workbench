@@ -174,3 +174,40 @@ def test_non_div_elements_with_selector_classes_are_ignored() -> None:
 
     assert parse_scores_page(html) == []
     assert parse_score_details_block(html) == {}
+
+
+REAL_ENTRY_LABELS = [
+    "Tee",
+    "Qualifying",
+    "Wedstrijd",
+    "Comment",
+    "Scorekaart",
+    "Baanhandicap",
+    "Stableford",
+    "Totaal aantal slagen",
+    "Aangepaste bruto score",
+    "Spelcondities (PCC)",
+    "Dagresultaat (SD)",
+    "Handicap",
+    "Marker",
+    "Ondertekend",
+]
+
+REAL_ENTRY_FAKE_VALUES = {
+    "Comment": "Wedstrijd #0000: Naam Wedstrijd",
+    "Baanhandicap": "18",
+    "Stableford": "36",
+    "Totaal aantal slagen": "88",
+    "Aangepaste bruto score": "88",
+    "Spelcondities (PCC)": "0",
+    "Dagresultaat (SD)": "12.3",
+    "Handicap": "14.2",
+    "Marker": "Piet Patat",
+}
+
+
+def test_real_score_entry_fixture_yields_labels_and_fake_values(golf_nl_html: LoadHtml) -> None:
+    result = parse_score_details_block(golf_nl_html("real_score_entry.html"))
+
+    assert list(result) == REAL_ENTRY_LABELS
+    assert {label: result[label] for label in REAL_ENTRY_FAKE_VALUES} == REAL_ENTRY_FAKE_VALUES

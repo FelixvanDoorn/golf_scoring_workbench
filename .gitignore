@@ -20,6 +20,8 @@ wheels/
 .ipynb_checkpoints/
 .pytest_cache/
 .ruff_cache/
+# Raw, unsanitized golf.nl captures (personal data); see capture_score_entry.py
+/data/captures/
 
 # Beads / Dolt files (added by bd init)
 .dolt/

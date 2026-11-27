@@ -3,6 +3,7 @@ Data models for the Golf.nl scraper.
 """
 
 from dataclasses import dataclass
+from datetime import datetime
 
 
 @dataclass
@@ -38,15 +39,38 @@ class ScraperConfig:
     score_pattern: str = r"<div>SD([\d,]+)\xa0"
 
 
-@dataclass
+@dataclass(frozen=True)
 class ScoreDetails:
-    """Data class representing a score details entry."""
+    """One golf.nl score entry, flattened into a single storage-ready record.
 
+    Header fields (from the entry header):
+        played_at: Date and time of the round, naive Dutch local time.
+        club_name: Club name, whitespace-collapsed.
+
+    Round fields (detail rows Tee, Qualifying, Wedstrijd, Comment):
+        tee, qualifying, tournament, comment. ``tournament`` and ``comment`` are
+        ``None`` when golf.nl omits the row.
+
+    Score card field (detail row Scorekaart):
+        score_card_link: The relative ``href`` of the score card link, or ``None``
+        when the row is absent.
+
+    Score fields (detail rows Baanhandicap to Handicap):
+        course_handicap, stableford, total_strokes, adjusted_gross_score,
+        playing_conditions_correction, score_differential, handicap. Plus
+        handicaps ("+2") are stored as negative numbers.
+
+    Marker fields (detail rows Marker, Ondertekend):
+        marker, signed. ``None`` when golf.nl omits the row.
+    """
+
+    played_at: datetime
+    club_name: str
     tee: str
     qualifying: bool
-    tournament: bool
-    comment: str
-    score_card_link: str
+    tournament: bool | None
+    comment: str | None
+    score_card_link: str | None
     course_handicap: int
     stableford: int
     total_strokes: int
@@ -54,8 +78,8 @@ class ScoreDetails:
     playing_conditions_correction: int
     score_differential: float
     handicap: float
-    marker: str
-    signed: bool
+    marker: str | None
+    signed: bool | None
 
 
 @dataclass
